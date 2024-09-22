@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedIndo Tracker</title>
+  <link rel="shortcut icon" href="https://cdn2.iconfinder.com/data/icons/healthy-lifestyle-cartoon-1/512/sim4378-512.png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s, color 0.3s;
+      color: #333;
+    }
+    #theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      background-color: #424242;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    body.dark #theme-toggle {
+      background-color: #edd364;
+      color: black;
+    }
+    #theme-toggle:hover {
+      background-color: #3a3a3a;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+    body.dark #theme-toggle:hover {
+      background-color: #c9b351;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+    #health-calculator {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s, color 0.3s;
+      color: #333;
+    }
+    h2 {
+      color: #4caf50;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input,
+    select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    input:focus,
+    select:focus {
+      border-color: #4caf50;
+    }
+    #calculate-button {
+      padding: 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #calculate-button:hover {
+      background-color: #45a049;
+    }
+    .output-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .loader {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #4caf50;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    .popup {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.5s;
+      color: #333;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    .popup h3 {
+      color: #4caf50;
+      margin-top: 0;
+    }
+    .popup p {
+      margin: 10px 0;
+    }
+    .close-popup {
+      background-color: #ff4d4f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+      float: right;
+      transition: background-color 0.3s;
+    }
+    .close-popup:hover {
+      background-color: #e03e3e;
+    }
+    body.dark {
+      background-color: #2e2e2e;
+      color: #e0e0e0;
+    }
+    body.dark #health-calculator {
+      background-color: #424242;
+      color: #e0e0e0;
+    }
+    body.dark #calculate-button {
+      background-color: #80e27e;
+      color: black;
+    }
+    body.dark .popup {
+      background: #616161;
+      color: #e0e0e0;
+    }
+    body.dark .close-popup {
+      background-color: #ff4d4f;
+    }
+    body.dark input,
+    body.dark select {
+      background-color: #555;
+      color: #e0e0e0;
+      border-color: #777;
+    }
+    body.dark input:focus,
+    body.dark select:focus {
+      border-color: #80e27e;
+    }
+  </style>
+</head>
+<body>
+  <button id="theme-toggle">🌙</button>
+  <div id="health-calculator">
+    <h2>Health Assessment</h2>
+    <div class="input-group">
+      <label for="country">🌎 Select Your Country:</label>
+      <select id="country">
+        <option value="global ">Global Average</option>
+        <optgroup label="Africa">
+          <option value="egypt">Egypt</option>
+          <option value="kenya">Kenya </option>
+          <option value="nigeria">Nigeria</option>
+          <option value="south_africa">South Africa</option>
+        </optgroup>
+        <optgroup label="Asia">
+          <option value="china">China</option>
+          <option value="india">India</option>
+          <option value="japan">Japan</option>
+          <option value="indonesia">Indonesia</option>
+        </optgroup>
+        <optgroup label="Europe">
+          <option value="france">France</option>
+          <option value="germany">Germany</option>
+          <option value="uk">United Kingdom</option>
+          <option value="russia">Russia</option>
+        </optgroup>
+        <optgroup label="North America">
+          <option value="canada">Canada</option>
+          <option value="mexico">Mexico</option>
+          <option value="usa">United States</option>
+        </optgroup>
+        <optgroup label="South America">
+          <option value="brazil">Brazil</option>
+        </optgroup>
+        <optgroup label="Oceania">
+          <option value="australia">Australia</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="age">🎂 Age:</label>
+      <input type="number" id="age" min="0" max="120" value="30" required>
+    </div>
+    <div class="input-group">
+      <label for="gender">⚧ Gender:</label>
+      <select id="gender" required>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+    </div>
+    <div class="input-group">
+      <label for="bmi">📏 BMI (Body Mass Index):</label>
+      <input type="number" id="bmi" min="10" max="50" step="0.1" value="22.5" required>
+    </div>
+    <div class="input-group ">
+      <label for="exercise">🏃‍♂️ Weekly Exercise (minutes):</label>
+      <input type="number" id="exercise" min="0" value="150" required>
+    </div>
+    <div class="input-group">
+      <label for="sleep">😴 Average Sleep per Night (hours):</label>
+      <input type="number" id="sleep" min="0" max="24" step="0.5" value="7" required>
+    </div>
+    <div class="input-group">
+      <label for="smoking">🚭 Smoking Status:</label>
+      <select id="smoking" required>
+        <option value="no">No</option>
+        <option value="occasionally">Occasionally</option>
+        <option value="regularly">Regularly</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="alcohol">🍷 Alcohol Consumption:</label>
+      <select id="alcohol" required>
+        <option value="none">None</option>
+        <option value="moderate">Moderate</option>
+        <option value="heavy">Heavy</option>
+      </select>
+    </div>
+    <button id="calculate-button">Assess Health</button>
+    <div class="output-container" id="output-container">
+      <div class="popup">
+        <button class="close-popup">✖</button>
+        <h3>Your Health Assessment Results:</h3>
+        <p id="overall-health"></p>
+        <p id="bmi-assessment"></p>
+        <p id="exercise-assessment"></p>
+        <p id="sleep-assessment"></p>
+        <p id="lifestyle-assessment"></p>
+        <h4>Health and Well-being Facts:</h4>
+        <ul id="facts-list"></ul>
+      </div>
+    </div>
+  </div>
+  <script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const outputContainer = document.getElementById('output-container');
+    const closePopup = document.querySelector('.close-popup');
+    const loader = document.getElementById('loader');
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      themeToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    });
+    closePopup.addEventListener('click', () => {
+      outputContainer.style.display = 'none';
+    });
+    document.getElementById('calculate-button').addEventListener('click', () => {
+      loader.style.display = 'flex';
+      const age = parseInt(document.getElementById('age').value);
+      const bmi = parseFloat(document.getElementById('bmi').value);
+      const exercise = parseInt(document.getElementById('exercise').value);
+      const sleep = parseFloat(document.getElementById('sleep').value);
+      const smoking = document.getElementById('smoking').value;
+      const alcohol = document.getElementById('alcohol').value;
+      let healthScore = 0;
+      let overallHealth = "Assessment Pending";
+      let bmiAssessment = "";
+      if (bmi < 18.5) {
+        overallHealth = "Underweight";
+        bmiAssessment = "Your BMI indicates you are underweight.";
+        healthScore -= 2;
+      } else if (bmi < 24.9) {
+        overallHealth = "Normal weight";
+        bmiAssessment = "Your BMI indicates you have a normal weight.";
+        healthScore += 2;
+      } else if (bmi < 29.9) {
+        overallHealth = "Overweight";
+        bmiAssessment = "Your BMI indicates you are overweight.";
+        healthScore -= 1;
+      } else {
+        overallHealth = "Obesity";
+        bmiAssessment = "Your BMI indicates you are obese.";
+        healthScore -= 3;
+      }
+      if (exercise < 150) {
+        healthScore -= 2;
+      } else if (exercise < 300) {
+        healthScore += 1;
+      } else {
+        healthScore += 2;
+      }
+      if (sleep < 6) {
+        healthScore -= 2;
+      } else if (sleep <= 9) {
+        healthScore += 2;
+      } else {
+        healthScore -= 1;
+      }
+      if (smoking === "regularly") {
+        healthScore -= 3;
+      } else if (smoking === "occasionally") {
+        healthScore -= 1;
+      }
+      if (alcohol === "none") {
+        healthScore += 3;
+      } else if (alcohol === "moderate") {
+        healthScore += 1;
+      } else {
+        healthScore -= 3;
+      }
+      if (age > 60) {
+        healthScore -= 1;
+      } else if (age < 18) {
+        healthScore += 1;
+      }
+      if (healthScore <= -5) {
+        overallHealth = "Poor Health - Immediate attention needed.";
+      } else if ( healthScore <= 0) {
+        overallHealth = "Below Average Health - Consider lifestyle changes.";
+      } else if (healthScore <= 5) {
+        overallHealth = "Average Health - Maintain your current lifestyle.";
+      } else {
+        overallHealth = "Excellent Health - Keep up the great work!";
+      }
+      document.getElementById('overall-health').innerText = overallHealth;
+      document.getElementById('bmi-assessment').innerText = bmiAssessment;
+      document.getElementById('exercise-assessment').innerText = exercise < 150 ? "You should increase your exercise." : " Good job on your exercise!";
+      document.getElementById('sleep-assessment').innerText = sleep < 6 ? "Try to get more sleep for better health." : "Your sleep duration is good.";
+      document.getElementById('lifestyle-assessment').innerText = smoking === "no" ? "Great choice on not smoking!" : "Consider reducing smoking for better health.";
+      if (alcohol === "none") {
+        document.getElementById('lifestyle-assessment').innerText += " Excellent job on avoiding alcohol!";
+      } else if (alcohol === "moderate") {
+        document.getElementById('lifestyle-assessment').innerText += " Moderate alcohol consumption is acceptable, but be mindful.";
+      } else {
+        document.getElementById('lifestyle-assessment').innerText += " Heavy alcohol consumption is concerning; consider reducing it.";
+      }
+      const healthFacts = [
+        "Maintain a balanced diet rich in fruits and vegetables.",
+        "Regular exercise can help improve your health.",
+        "Sleep is crucial for your well-being; aim for 7-9 hours nightly.",
+        "Avoid smoking and excessive alcohol consumption.",
+        "Stay hydrated by drinking plenty of water.",
+        "Practice mindfulness or meditation to reduce stress.",
+        "Regular health check-ups can help catch issues early.",
+        "Get enough sunlight for Vitamin D and mood improvement.",
+        "Social connections can boost mental health.",
+        "Limit processed foods and sugars for better overall health."
+      ];
+      const selectedFacts = [];
+      while (selectedFacts.length < 3) {
+        const randomFact = healthFacts[Math.floor(Math.random() * healthFacts.length)];
+        if (!selectedFacts.includes(randomFact)) {
+          selectedFacts.push(randomFact);
+        }
+      }
+      document.getElementById('facts-list').innerHTML = selectedFacts.map(fact => `<li>${fact}</li>`).join('');
+      setTimeout(() => {
+        loader.style.display = 'none';
+        outputContainer.style.display = 'flex';
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
